@@ -1,9 +1,11 @@
 name: Call Build and Publish Image
 
 on:
+  # pull_request:
+  #   branches:
+  #     - "**"
   pull_request:
-    branches:
-      - "**"
+    types: [ assigned, opened, synchronize, reopened ]
   push:
     branches:
       - main
@@ -19,14 +21,14 @@ jobs:
       docker_username: ${{ secrets.DOCKERHUB_USER }}
       docker_password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  # call_publish_image1:
-  #   needs: call_build_image
-  #   name: Call Publish Image1
-  #   uses: ./.github/workflows/publish-image.yml
-
-  call_publish_image2:
+  call_publish_image1:
     needs: call_build_image
-    name: Call Publish Image2
+    name: Call Publish Image1
     uses: ./.github/workflows/publish-image.yml
-    secrets:
-      webhook_url_slack: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # call_publish_image2:
+  #   needs: call_build_image
+  #   name: Call Publish Image2
+  #   uses: ./.github/workflows/publish-image.yml
+  #   secrets:
+  #     webhook_url_slack: ${{ secrets.SLACK_WEBHOOK_URL }}
