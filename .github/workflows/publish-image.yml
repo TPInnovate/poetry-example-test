@@ -77,14 +77,34 @@ jobs:
           export DOCKER_TAG=$(cat ${{ inputs.package_dir }}/docker-tag)
           echo "image=${{ steps.set-registry.outputs.registry }}/${DOCKER_TAG}" >> $GITHUB_OUTPUT
 
+      - name: Check if secret exists
+        env: 
+            webhook_secret: ${{ secrets.webhook_url_slack }}
+        if: ${{ env.webhook_secret == '' }}
+        run: echo "echo the secret \"webhook_secret\" has not been made; echo please go to \"settings \> secrets \> actions\" to create it"
+
       - name: Notify published image to Slack
         if: ${{ env.SLACK_WEBHOOK_URL != '' }}
         uses: slackapi/slack-github-action@v1.23.0
         with:
           payload: |
             {
-                "message":
-                "PUBLISHED IMAGE: ${{ steps.image-built.outputs.image }} published from workflow run at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}."
+              "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                  }
+                }
+              ]
             }
+          # payload: |
+          #   {
+          #       "message":
+          #       "PUBLISHED IMAGE: ${{ steps.image-built.outputs.image }} published from workflow run at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}."
+          #   }
         env:
-            SLACK_WEBHOOK_URL: ${{ secrets.webhook_url_slack }}
+          SLACK_WEBHOOK_URL: ${{ secrets.webhook_url_slack }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
