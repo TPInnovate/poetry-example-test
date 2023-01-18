@@ -122,5 +122,5 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{ inputs.my_artifact_name }}-${{ inputs.arch }
+          name: ${{ inputs.my_artifact_name }}-${{ inputs.arch }}
           path: ${{ inputs.package_dir }}
