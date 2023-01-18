@@ -110,7 +110,7 @@ jobs:
   
       - name: Archive built image
         run: |
-          set -xe -o pipeline
+          set -xe -o pipefail
           mkdir -p ${{ inputs.package_dir }}
           export DOCKER_TAG="${{ inputs.image_name }}:${{ steps.imagetag.outputs.tag }}-${{ inputs.arch }}"
           # cp ${{ inputs.dockerfile }} ${{ inputs.package_dir }}/Dockerfile
