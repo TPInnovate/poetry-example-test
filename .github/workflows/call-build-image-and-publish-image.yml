@@ -1,9 +1,9 @@
 name: Call Build and Publish Image
 
 on:
-  # pull_request:
-  #   branches:
-  #     - "**"
+  pull_request:
+    branches:
+      - "**"
   push:
     branches:
       - main
