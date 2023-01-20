@@ -43,6 +43,8 @@ on:
       webhook_url_slack:
         description: Webhook URL for Slack
         required: false
+env:
+  SLACK_WEBHOOK_URL: ${{ secrets.webhook_url_slack }}
 
 jobs:
   publish-image:
@@ -73,9 +75,13 @@ jobs:
 
       - name: Get built image
         id: image-built
+        if: ${{ env.SLACK_WEBHOOK_URL != '' }}
         run: |
           export DOCKER_TAG=$(cat ${{ inputs.package_dir }}/docker-tag)
           echo "image=${{ steps.set-registry.outputs.registry }}/${DOCKER_TAG}" >> $GITHUB_OUTPUT
+        # env:
+        #   SLACK_WEBHOOK_URL: ${{ secrets.webhook_url_slack }}
+
 
       - name: Check if secret exists
         env: 
@@ -89,22 +95,45 @@ jobs:
         with:
           payload: |
             {
-              "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
-                  }
-                }
-              ]
+              "text": "GitHub Action Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\nPublished Image: ${{ steps.image-built.outputs.image }}"
             }
-          # payload: |
-          #   {
-          #       "message":
-          #       "PUBLISHED IMAGE: ${{ steps.image-built.outputs.image }} published from workflow run at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}."
-          #   }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.webhook_url_slack }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        # env:
+        #   SLACK_WEBHOOK_URL: ${{ secrets.webhook_url_slack }}
+
+      # - name: Notify published image to Slack
+      #   if: ${{ env.SLACK_WEBHOOK_URL != '' }}
+      #   uses: slackapi/slack-github-action@v1.23.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "GitHub Action build result: ${{ job.status }}\nWorkflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\nCommit: ${{ github.event.head_commit.url }}\nPublished Image: ${{ steps.image-built.outputs.image }}"
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.webhook_url_slack }}
+      #     SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      # - name: Notify published image to Slack
+      #   if: ${{ env.SLACK_WEBHOOK_URL != '' }}
+      #   uses: slackapi/slack-github-action@v1.23.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
+      #         "blocks": [
+      #           {
+      #             "type": "section",
+      #             "text": {
+      #               "type": "mrkdwn",
+      #               "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+      #             }
+      #           }
+      #         ]
+      #       }
+      #     # payload: |
+      #     #   {
+      #     #       "message":
+      #     #       "PUBLISHED IMAGE: ${{ steps.image-built.outputs.image }} published from workflow run at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}."
+      #     #   }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.webhook_url_slack }}
+      #     SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
